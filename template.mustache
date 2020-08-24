@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>
+      {{title}}
+    </title>
+  </head>
+  <body>
+    <h1>
+      {{title}}
+    </h1>
+    <table>
+      <thead>
+        <tr>
+          <th>
+            Name
+          </th>
+          <th>
+            Test
+          </th>
+          <th>
+            Result
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#data}}
+          <tr>
+            <td title="{{timestamp}}">
+              {{name}}
+            </td>
+            <td title="{{parameters}}">
+              {{type}}
+            </td>
+            <td title="{{message}}">
+              {{success_code}}
+            </td>
+          </tr>
+        {{/data}}
+      </tbody>
+    </table>
+  </body>
+</html>

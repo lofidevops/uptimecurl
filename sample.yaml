@@ -1,0 +1,9 @@
+example_http:
+    type: http_ok
+    parameters:
+      - http://en.wikipedia.org
+example_port:
+    type: port_ok
+    parameters:
+      - en.wikipedia.org
+      - 443

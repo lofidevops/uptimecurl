@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright 2020 David Seaward
+
+
+import click
 import datetime
 import logging
 import os
@@ -6,6 +11,9 @@ import socket
 import chevron
 import requests
 from ruamel.yaml import YAML
+
+DEFAULT_CONFIG = os.path.join(__file__, "..", "sample.yaml")
+DEFAULT_TEMPLATE = os.path.join(__file__, "..", "template.mustache")
 
 
 def fail_on_exception(func):
@@ -96,7 +104,17 @@ def process(tests):
     return {"data": list(_process(tests))}
 
 
-def execute(config_path, template_path, result_path):
+def execute(config_path=None, template_path=None, result_path=None):
+
+    # populate empty paths
+    if config_path is None:
+        config_path = DEFAULT_CONFIG
+
+    if template_path is None:
+        template_path = DEFAULT_TEMPLATE
+
+    if result_path is None:
+        result_path = os.path.join(os.getcwd(), "result.html")
 
     # validate paths (alert user early if invalid)
     config_path = valid_read_filepath(config_path, "configuration")
@@ -123,5 +141,6 @@ def execute(config_path, template_path, result_path):
             result.write(chevron.render(template, data))
 
 
-if __name__ == "__main__":
-    execute("sample.yaml", "template.mustache", "result.html")
+@click.command()
+def cli():
+    execute()

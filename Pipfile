@@ -1,15 +1,22 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: Copyright 2020 David Seaward
+
 [[source]]
-url = "https://pypi.python.org/simple"
+url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
 [packages]
-chevron = "*"
-python3-nmap = "*"
-requests = "*"
-"ruamel.yaml" = "*"
+chevron = ">=0.13, <0.14"
+click = ">=7.0, <8.0"
+requests = ">=2.24, <3.0"
+"ruamel.yaml" = ">=0.16, <0.17"
 
 [dev-packages]
+reuse = "*"
+setuptools-git = "*"
+twine = "*"
 
-[requires]
-python_version = "3.7"
+[dev-packages.e1839a8]
+path = "."
+editable = true

@@ -1,10 +1,2 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: Copyright 2020 David Seaward
-
-.idea
-*.egg-info
-*~
-dist/
-build/
-__pycache__
-result.html

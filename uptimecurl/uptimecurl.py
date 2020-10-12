@@ -1,19 +1,21 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# SPDX-FileCopyrightText: Copyright 2020 David Seaward
+# SPDX-FileCopyrightText: Copyright 2020 David Seaward and contributors
 
 
-import click
 import datetime
 import logging
 import os
 import socket
 
 import chevron
+import click
 import requests
+from dotenv import load_dotenv
 from ruamel.yaml import YAML
 
-DEFAULT_CONFIG = os.path.join(__file__, "..", "sample.yaml")
-DEFAULT_TEMPLATE = os.path.join(__file__, "..", "template.mustache")
+LOCAL_FOLDER = os.path.dirname(__file__)
+DEFAULT_CONFIG = os.path.join(LOCAL_FOLDER, "definition.yaml")
+DEFAULT_TEMPLATE = os.path.join(LOCAL_FOLDER, "template.mustache")
 
 
 def fail_on_exception(func):
@@ -25,31 +27,6 @@ def fail_on_exception(func):
             return False, str(e)
 
     return _fail_on_exception
-
-
-def valid_read_filepath(path, descriptor="file"):
-
-    path = os.path.abspath(path)
-    if os.path.isfile(path) and os.access(path, os.R_OK):
-        return path
-    else:
-        raise FileNotFoundError(f"Cannot read {descriptor} {path}")
-
-
-def valid_write_filepath(path, descriptor="file"):
-
-    path = os.path.abspath(path)
-    base, filename = os.path.split(path)
-
-    writeable_file = os.path.isfile(path) and os.access(path, os.W_OK)
-    writeable_folder = (
-        not os.path.exists(path) and os.path.isdir(base) and os.access(base, os.W_OK)
-    )
-
-    if writeable_file or writeable_folder:
-        return path
-    else:
-        raise IOError(f"Cannot write {descriptor} {path}")
 
 
 @fail_on_exception
@@ -104,43 +81,83 @@ def process(tests):
     return {"data": list(_process(tests))}
 
 
-def execute(config_path=None, template_path=None, result_path=None):
-
-    # populate empty paths
-    if config_path is None:
-        config_path = DEFAULT_CONFIG
-
-    if template_path is None:
-        template_path = DEFAULT_TEMPLATE
-
-    if result_path is None:
-        result_path = os.path.join(os.getcwd(), "result.html")
-
-    # validate paths (alert user early if invalid)
-    config_path = valid_read_filepath(config_path, "configuration")
-    template_path = valid_read_filepath(template_path, "template")
-    result_path = valid_write_filepath(result_path, "results")
+def execute(definition_path, template_path, output_path):
 
     # load configuration
     yaml = YAML()
-    with open(config_path, "r") as configuration_file:
-        config = yaml.load(configuration_file)
+    with open(definition_path, "r") as definition_file:
+        monitor = yaml.load(definition_file)
 
     # process
-    data = process(config)
+    results = process(monitor)
 
-    base = os.path.basename(config_path)
+    base = os.path.basename(definition_path)
     if base.endswith(".yaml"):
         base = base[:-5]
 
-    data["title"] = base
+    results["title"] = base
 
     # write results
     with open(template_path, "r") as template:
-        with open(result_path, "w") as result:
-            result.write(chevron.render(template, data))
+        with open(output_path, "w") as output_file:
+            output_file.write(chevron.render(template, results))
 
 
 @click.command()
-def cli():
-    execute()
+@click.option(
+    "--definition",
+    default=DEFAULT_CONFIG,
+    envvar="UPTIMECURL_DEFINITION",
+    help="List of test definitions (YAML).",
+    type=click.Path(
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        writable=False,
+        readable=True,
+        resolve_path=True,
+    ),
+)
+@click.option(
+    "--template",
+    default=DEFAULT_TEMPLATE,
+    envvar="UPTIMECURL_TEMPLATE",
+    help="Template to generate report from test results (Mustache).",
+    type=click.Path(
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        writable=False,
+        readable=True,
+        resolve_path=True,
+    ),
+)
+@click.option(
+    "--output",
+    default="./result.html",
+    envvar="UPTIMECURL_OUTPUT",
+    help="Output path for report (typically HTML).",
+    type=click.Path(
+        exists=False,  # MAY exist
+        file_okay=True,
+        dir_okay=False,
+        writable=True,
+        readable=True,
+        resolve_path=True,
+    ),
+)
+def cli(definition, template, output):
+    """
+    Basic monitoring tool designed for rapid deployment and simple results.
+
+    Define tests in the DEFINITION file and template in the TEMPLATE file.
+    Report is generated at the OUTPUT path.
+
+    Instead of command-line parameters you can use the environment
+    variables UPTIMECURL_DEFINITION, UPTIMECURL_TEMPLATE and
+    UPTIMECURL_OUTPUT. These can be defined in a .env file in the working
+    directory.
+    """
+
+    load_dotenv()
+    execute(definition, template, output)

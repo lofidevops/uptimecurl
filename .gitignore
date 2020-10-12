@@ -1,10 +1,14 @@
-# SPDX-License-Identifier: CC0-1.0
-# SPDX-FileCopyrightText: Copyright 2020 David Seaward
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: Copyright 2020 David Seaward and contributors
 
+.coverage
 .idea
+.pytest_cache
 *.egg-info
 *~
+*.html
+*.yaml
+*.mustache
 dist/
 build/
 __pycache__
-result.html
